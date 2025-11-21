@@ -1,0 +1,107 @@
+import express from 'express';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import dotenv from 'dotenv';
+import fetch from 'node-fetch';
+import Database from 'better-sqlite3';
+import cors from 'cors';
+import { v4 as uuidv4 } from 'uuid';
+
+dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const app = express();
+app.use(express.json());
+app.use(cors());
+app.use(express.static(path.join(__dirname, 'public')));
+
+// open or create the SQLite DB using better-sqlite3
+const db = new Database(path.join(__dirname, 'db.sqlite'));
+
+db.prepare(`
+  CREATE TABLE IF NOT EXISTS messages (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_id TEXT,
+    role TEXT,
+    content TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+`).run();
+
+function saveMessage(session_id, role, content) {
+  return db.prepare('INSERT INTO messages (session_id, role, content) VALUES (?, ?, ?)')
+           .run(session_id, role, content);
+}
+
+// Chat endpoint
+app.post('/api/chat', async (req, res) => {
+  try {
+    const { message, session_id: clientSession } = req.body;
+    const session_id = clientSession || uuidv4();
+
+    // save user message
+    saveMessage(session_id, 'user', message);
+
+    const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+    let assistantReply = '';
+
+    if (OPENAI_API_KEY) {
+      // call OpenAI Chat Completions
+      const r = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${OPENAI_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: 'gpt-3.5-turbo',
+          messages: [{ role: 'user', content: message }],
+          max_tokens: 700
+        })
+      });
+
+      const data = await r.json();
+      assistantReply = data?.choices?.[0]?.message?.content?.trim() || '(no reply from API)';
+    } else {
+      // fallback when no API key provided
+      assistantReply = `Echo reply (no OpenAI key configured): ${message}`;
+    }
+
+    // save assistant reply
+    saveMessage(session_id, 'assistant', assistantReply);
+
+    res.json({ reply: assistantReply, session_id });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Return last 200 user messages (search history sidebar)
+app.get('/api/history', (req, res) => {
+  const rows = db.prepare("SELECT id, session_id, content, created_at FROM messages WHERE role='user' ORDER BY datetime(created_at) DESC LIMIT 200").all();
+  res.json(rows);
+});
+
+// Given a user message id, return that user message + assistant reply that follows it
+app.get('/api/conversation/:userMsgId', (req, res) => {
+  const userMsgId = req.params.userMsgId;
+  const userRow = db.prepare('SELECT * FROM messages WHERE id = ? AND role = "user"').get(userMsgId);
+  if (!userRow) return res.status(404).json({ error: 'not found' });
+
+  const assistantRow = db.prepare('SELECT * FROM messages WHERE session_id = ? AND role = "assistant" AND datetime(created_at) >= datetime(?) ORDER BY datetime(created_at) ASC LIMIT 1')
+                         .get(userRow.session_id, userRow.created_at);
+
+  res.json({ user: userRow, assistant: assistantRow });
+});
+
+// Clear all messages
+app.post('/api/clear', (req, res) => {
+  db.prepare('DELETE FROM messages').run();
+  res.json({ status: 'cleared' });
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));

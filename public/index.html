@@ -1,0 +1,269 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Chatbot — Chat UI</title>
+  <style>
+    /* ChatGPT-like clean interface */
+    :root {
+      --bg:#f7f7fb;
+      --sidebar:#0f1724;
+      --accent:#7c3aed;
+      --muted:#6b7280;
+      --bubble-user:#e6e6ff;
+      --bubble-assist:#e6e6ff;
+    }
+    html,body { height:100%; margin:0; font-family:Inter,system-ui,Arial,sans-serif; background:var(--bg); color:#111827; }
+    .app { display:flex; height:100vh; }
+    .sidebar { width:320px; background:linear-gradient(180deg,#0b1220,#071126); color:white; padding:18px; box-sizing:border-box; }
+    .sidebar h2 { margin:0 0 12px 0; font-size:20px; }
+    .history { overflow:auto; margin-top:8px; padding-right:6px; }
+    .history-item { padding:10px;border-radius:8px;cursor:pointer; color:#e6e6f0; margin-bottom:8px; background:transparent;}
+    .history-item:hover { background:rgba(255,255,255,0.03); }
+    .main { flex:1; display:flex; flex-direction:column; }
+    .topbar { height:72px; display:flex; align-items:center; justify-content:space-between; padding:0 24px; background:linear-gradient(90deg,#ffffff,#ffffff); box-shadow:0 1px 0 rgba(16,24,40,0.04); }
+    .brand { display:flex; align-items:center; gap:12px; }
+    .logo { width:36px; height:36px; border-radius:8px; background:linear-gradient(135deg,var(--accent),#a78bfa); display:flex; align-items:center; justify-content:center; color:white; font-weight:700; }
+    .profile { display:flex; align-items:center; gap:10px; cursor:default; }
+    .avatar { width:40px; height:40px; border-radius:999px; background:#8b5cf6; color:white; display:flex; align-items:center; justify-content:center; font-weight:600; }
+    .container { flex:1; display:flex; gap:0; }
+    .chat { flex:1; display:flex; flex-direction:column; padding:20px 24px; box-sizing:border-box; overflow:hidden; }
+    .messages { flex:1; overflow:auto; padding-bottom:20px; }
+    .msg { max-width:70%; padding:12px 14px; border-radius:12px; margin-bottom:12px; line-height:1.4; }
+    .msg.user { margin-left:auto; background:var(--bubble-user); color:black; border-bottom-right-radius:6px; }
+    .msg.assistant { margin-right:auto; background:var(--bubble-assist); color:black;border-bottom-left-radius:6px;}
+    .input-area { padding:12px; border-top:1px solid rgba(0,0,0,0.06); display:flex; gap:10px; align-items:center; background:white; }
+    .input { flex:1; padding:12px 14px; border-radius:12px; border:1px solid #e6e6ef; min-height:44px; resize:none; font-size:14px; }
+    .btn { background:linear-gradient(90deg,var(--accent),#a78bfa); border:none; color:white; padding:10px 14px; border-radius:10px; cursor:pointer; }
+    /* login modal */
+    .modal { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(10,10,12,0.45); z-index:40; }
+    .card { width:420px; background:white; padding:20px; border-radius:12px; box-shadow:0 10px 30px rgba(16,24,40,0.25); }
+    .small { color:var(--muted); font-size:13px; }
+    .logout { font-size:13px; color:var(--muted); cursor:pointer; text-decoration:underline; }
+    footer.small { padding:6px 12px; font-size:12px; color:var(--muted); }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="sidebar">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <h2>Conversations</h2>
+        <button id="clearBtn" class="btn" style="padding:6px 8px;font-size:12px">Clear</button>
+      </div>
+      <div class="history" id="historyList"></div>
+      <footer class="small" style="margin-top:14px">Log in with your email to save history.</footer>
+    </div>
+
+    <div class="main">
+      <div class="topbar">
+        <div class="brand">
+          <div class="logo">Cb</div>
+          <div>
+            <div style="font-weight:700">Chatbot</div>
+            <div class="small">Ask anything </div>
+          </div>
+        </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+        <div id="profileArea" class="profile">
+          <!-- dynamically filled -->
+        </div>
+      </div>
+
+      <div class="container">
+        <div class="chat">
+          <div class="messages" id="messages"></div>
+
+          <div class="input-area">
+            <textarea id="prompt" class="input" rows="1" placeholder="Ask me anything — press Enter to send, Shift+Enter for newline"></textarea>
+            <button id="sendBtn" class="btn">Send</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Login modal -->
+  <div id="loginModal" class="modal" style="display:none;">
+    <div class="card">
+      <h3>Welcome</h3>
+      <p class="small">Enter your email to continue. We'll remember you next time on this device.</p>
+      <div style="margin-top:12px;">
+        <input id="emailInput" style="width:100%; padding:10px; border-radius:8px; border:1px solid #e6e6ef" placeholder="you@example.com" />
+      </div>
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:12px;">
+        <button id="loginBtn" class="btn">Continue</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Helpers
+    function createAvatarText(email){ return (email||'U').trim()[0]?.toUpperCase() || 'U'; }
+    function el(tag, cls){ const e = document.createElement(tag); if(cls) e.className = cls; return e; }
+
+    const historyList = document.getElementById('historyList');
+    const messagesDiv = document.getElementById('messages');
+    const promptInput = document.getElementById('prompt');
+    const sendBtn = document.getElementById('sendBtn');
+    const loginModal = document.getElementById('loginModal');
+    const emailInput = document.getElementById('emailInput');
+    const loginBtn = document.getElementById('loginBtn');
+    const profileArea = document.getElementById('profileArea');
+    const clearBtn = document.getElementById('clearBtn');
+
+    let currentSessionId = localStorage.getItem('session_id') || null;
+    let userId = localStorage.getItem('user_id') || null;
+    let userEmail = localStorage.getItem('user_email') || null;
+
+    // Show profile or login
+    function renderProfile(){
+      profileArea.innerHTML = '';
+      if(!userId){
+        const lnk = el('div','small'); lnk.textContent = 'Login'; lnk.style.cursor = 'pointer';
+        lnk.onclick = ()=> showLogin();
+        profileArea.appendChild(lnk);
+        return;
+      }
+      const avatar = el('div','avatar'); avatar.textContent = createAvatarText(userEmail);
+      const nameDiv = el('div'); nameDiv.innerHTML = `<div style="font-weight:600">${userEmail}</div><div class="small" style="text-align:right"><span id="logout" class="logout">Logout</span></div>`;
+      profileArea.appendChild(avatar);
+      profileArea.appendChild(nameDiv);
+      document.getElementById('logout').onclick = doLogout;
+    }
+
+    function showLogin(){ loginModal.style.display='flex'; emailInput.focus(); }
+    function hideLogin(){ loginModal.style.display='none'; }
+
+    async function doRegister(){
+      const email = (emailInput.value||'').trim().toLowerCase();
+      if(!email) return alert('Enter email');
+      const r = await fetch('/api/register', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email }) });
+      if(!r.ok) return alert('Register failed');
+      const data = await r.json();
+      userId = data.id; userEmail = data.email;
+      localStorage.setItem('user_id', userId);
+      localStorage.setItem('user_email', userEmail);
+      hideLogin();
+      renderProfile();
+      await loadHistory();
+    }
+
+    function doLogout(){
+      if(!confirm('Logout?')) return;
+      localStorage.removeItem('user_id');
+      localStorage.removeItem('user_email');
+      localStorage.removeItem('session_id');
+      userId = null; userEmail = null; currentSessionId = null;
+      messagesDiv.innerHTML = '';
+      renderProfile();
+      showLogin();
+    }
+
+    async function loadHistory(){
+      if(!userId) return;
+      const res = await fetch('/api/history?user_id=' + encodeURIComponent(userId));
+      const items = await res.json();
+      historyList.innerHTML = '';
+      items.forEach(row => {
+        const elRow = el('div','history-item');
+        elRow.textContent = row.content.length>80 ? row.content.slice(0,80)+'...' : row.content;
+        elRow.dataset.id = row.id;
+        elRow.onclick = async () => {
+          const conv = await (await fetch('/api/conversation/' + row.id)).json();
+          messagesDiv.innerHTML = '';
+          if(conv.user) appendMessage('user', conv.user.content);
+          if(conv.assistant) appendMessage('assistant', conv.assistant.content);
+          currentSessionId = conv.user.session_id;
+          localStorage.setItem('session_id', currentSessionId);
+        };
+        historyList.appendChild(elRow);
+      });
+    }
+
+    function appendMessage(role, text){
+      const m = el('div','msg ' + (role==='user' ? 'user' : 'assistant'));
+      m.textContent = text;
+      messagesDiv.appendChild(m);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    async function sendMessage(){
+      const text = promptInput.value.trim();
+      if(!text || !userId) return;
+      appendMessage('user', text);
+      promptInput.value = '';
+      // placeholder assistant
+      const placeholder = el('div','msg assistant'); placeholder.textContent = '…'; messagesDiv.appendChild(placeholder);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+      const res = await fetch('/api/chat', {
+        method:'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ message: text, user_id: userId, session_id: currentSessionId })
+      });
+      const data = await res.json();
+      placeholder.textContent = data.reply;
+      currentSessionId = data.session_id || currentSessionId;
+      if(currentSessionId) localStorage.setItem('session_id', currentSessionId);
+      await loadHistory();
+    }
+
+    // events
+    sendBtn.onclick = sendMessage;
+    promptInput.addEventListener('keydown', (e)=>{
+      if(e.key === 'Enter' && !e.shiftKey){
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+    loginBtn.onclick = doRegister;
+    emailInput.addEventListener('keydown',(e)=>{ if(e.key==='Enter') doRegister(); });
+    clearBtn.onclick = async ()=>{
+      if(!userId) return;
+      if(!confirm('Clear your chat history?')) return;
+      await fetch('/api/clear', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ user_id: userId }) });
+      await loadHistory();
+      messagesDiv.innerHTML = '';
+      localStorage.removeItem('session_id');
+      currentSessionId = null;
+    };
+
+    // init
+    (async function init(){
+      renderProfile();
+      if(!userId) { showLogin(); return; }
+      await loadHistory();
+      // optionally load last session messages: if you have a session_id, you could fetch last message
+      if(currentSessionId){
+        // no-op — keep blank until user interacts or clicks a history item
+      }
+    })();
+  </script>
+</body>
+</html>
