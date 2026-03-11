@@ -4,33 +4,37 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from dotenv import load_dotenv
 
-# --- 1. SETUP AND CONFIGURATION ---
+# -----------------------------
+# 1. CONFIGURATION
+# -----------------------------
 load_dotenv()
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
-# --- 2. FLASK APP INITIALIZATION ---
 app = Flask(__name__)
 CORS(app)
 
-# --- 3. GEMINI MODEL SETUP ---
+# Gemini model config
 generation_config = {
-    "temperature": 1,
+    "temperature": 0.9,
     "top_p": 0.95,
-    "top_k": 64,
-    "max_output_tokens": 8192,
+    "top_k": 40,
+    "max_output_tokens": 4096,
     "response_mime_type": "text/plain",
 }
 
+print("Initializing Gemini model: gemini-1.5-flash...")
 model = genai.GenerativeModel(
-    model_name="gemini-2.0-flash",
+    model_name="gemini-2.5-flash",
     generation_config=generation_config,
-    system_instruction="You are an expert chatbot assistant, output format should be maximum of two lines",
+    system_instruction="You are a professional chatbot assistant. Keep responses clean and short.",
 )
 
-# --- 4. CONVERSATION HISTORY MANAGEMENT ---
+# Store chat sessions in memory
 chat_sessions = {}
 
-# --- 5. API ENDPOINT FOR CHATTING ---
+# -----------------------------
+# 2. /chat ENDPOINT
+# -----------------------------
 @app.route('/chat', methods=['POST'])
 def chat():
     try:
@@ -38,41 +42,55 @@ def chat():
         if not data:
             return jsonify({"error": "Invalid JSON body"}), 400
 
-        user_input = data.get("message")
-        session_id = data.get("session_id", "default_session")
+        user_message = data.get("message")
+        session_id = data.get("session_id", "default")
 
-        if not user_input:
+        if not user_message:
             return jsonify({"error": "Message required"}), 400
 
-        # Create or load session
+        print(f"[{session_id}] User message: {user_message}")
+
+
+        # Create chat session if not exists
         if session_id not in chat_sessions:
             chat_sessions[session_id] = model.start_chat(history=[])
 
         chat_session = chat_sessions[session_id]
 
-        # Call Gemini API safely
+        # Call Gemini
         try:
-            gemini_response = chat_session.send_message(user_input)
-        except Exception as api_error:
+            response = chat_session.send_message(user_message)
+        except Exception as e:
             return jsonify({
-                "error": "Gemini API error",
-                "details": str(api_error)
+                "error": "Gemini API Error",
+                "details": str(e)
             }), 500
 
-        reply_text = getattr(gemini_response, "text", "(no reply)")
+        # Extract reply
+        reply = "(no reply)"
+        if hasattr(response, "text") and response.text:
+            reply = response.text.strip()
+        elif hasattr(response, "candidates"):
+            try:
+                reply = response.candidates[0].content.parts[0].text.strip()
+            except:
+                pass
+
+        print(f"[{session_id}] Gemini reply: {reply}")
 
         return jsonify({
-            "reply": reply_text,
+            "reply": reply,
             "session_id": session_id
         })
 
     except Exception as e:
         return jsonify({
-            "error": "Server error",
+            "error": "Flask Server Error",
             "details": str(e)
         }), 500
 
-
-# --- 6. RUN THE FLASK APP ---
+# -----------------------------
+# 3. START SERVER
+# -----------------------------
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=5001)
