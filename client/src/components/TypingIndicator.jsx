@@ -11,7 +11,7 @@ const styles = {
   dot: {
     width: '6px',
     height: '6px',
-    backgroundColor: '#9ca3af',
+    backgroundColor: 'var(--text-muted)',
     borderRadius: '50%',
     animation: 'bounceDot 1.4s infinite ease-in-out both'
   },

@@ -2,7 +2,9 @@ import React, { useEffect, useRef } from 'react';
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
 import TypingIndicator from './TypingIndicator';
-import { Sparkles, Bot, User } from 'lucide-react';
+import { Sparkles, Bot, User, FileText, Download } from 'lucide-react';
+
+const API_BASE = 'http://localhost:5000';
 
 const styles = {
   container: {
@@ -74,26 +76,103 @@ const styles = {
     alignItems: isUser ? 'flex-end' : 'flex-start',
     maxWidth: '100%'
   }),
-  messageContent: (isUser, isError) => ({
-    padding: '12px 16px',
-    borderRadius: '16px',
-    borderTopLeftRadius: !isUser ? '4px' : '16px',
-    borderTopRightRadius: isUser ? '4px' : '16px',
-    background: isUser ? 'var(--bubble-user)' : 'var(--bubble-ai)',
-    color: isError ? '#dc2626' : (isUser ? '#0f172a' : 'var(--text-main)'),
-    border: isUser ? 'none' : '1px solid var(--border-light)',
-    fontSize: '15px',
-    lineHeight: '1.6',
-    boxShadow: isUser ? 'none' : 'var(--shadow-sm)'
-  }),
+  messageContent: (isUser, isError, bubbleStyle) => {
+    let baseStyles = {
+      padding: '12px 16px',
+      fontSize: '1em', // Inherit from data-font in root
+      lineHeight: '1.6',
+      color: isError ? '#dc2626' : 'var(--text-main)'
+    };
+
+    if (bubbleStyle === 'minimal') {
+      return {
+        ...baseStyles,
+        background: 'transparent',
+        border: 'none',
+        boxShadow: 'none',
+        padding: '0 8px'
+      };
+    }
+
+    if (bubbleStyle === 'classic') {
+      return {
+        ...baseStyles,
+        borderRadius: '8px',
+        background: isUser ? 'var(--bubble-user)' : 'var(--bubble-ai)',
+        border: '1px solid var(--border-light)',
+        boxShadow: 'none'
+      };
+    }
+
+    // Default 'modern'
+    return {
+      ...baseStyles,
+      borderRadius: '16px',
+      borderTopLeftRadius: !isUser ? '4px' : '16px',
+      borderTopRightRadius: isUser ? '4px' : '16px',
+      background: isUser ? 'var(--bubble-user)' : 'var(--bubble-ai)',
+      border: isUser ? 'none' : '1px solid var(--border-light)',
+      boxShadow: isUser ? 'none' : 'var(--shadow-sm)'
+    };
+  },
   loadingRow: {
     display: 'flex',
     justifyContent: 'flex-start',
     width: '100%'
+  },
+  fileCard: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    padding: '12px',
+    background: 'white',
+    border: '1px solid var(--border-light)',
+    borderRadius: '12px',
+    textDecoration: 'none',
+    color: 'var(--text-main)',
+    width: 'fit-content',
+    minWidth: '200px',
+    maxWidth: '100%',
+    marginBottom: '8px',
+    boxShadow: 'var(--shadow-sm)'
+  },
+  fileIconBox: {
+    width: '36px',
+    height: '36px',
+    borderRadius: '8px',
+    background: 'var(--bubble-user)',
+    color: 'var(--accent)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  fileDetails: {
+    flex: 1,
+    minWidth: 0,
+    display: 'flex',
+    flexDirection: 'column'
+  },
+  fileName: {
+    fontSize: '13px',
+    fontWeight: '500',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis'
+  },
+  fileMeta: {
+    fontSize: '11px',
+    color: 'var(--text-muted)'
+  },
+  imgAttachment: {
+    maxWidth: '100%',
+    maxHeight: '300px',
+    borderRadius: '8px',
+    marginBottom: '8px',
+    objectFit: 'contain'
   }
 };
 
-export default function ChatWindow({ messages, loading }) {
+export default function ChatWindow({ messages, loading, settings = {} }) {
   const bottomRef = useRef(null);
 
   useEffect(() => {
@@ -104,6 +183,36 @@ export default function ChatWindow({ messages, loading }) {
     const rawMarkup = marked.parse(content || '');
     const cleanMarkup = DOMPurify.sanitize(rawMarkup);
     return { __html: cleanMarkup };
+  };
+
+  const renderAttachment = (file) => {
+    if (!file) return null;
+    
+    // Absolute URL mapping for downloaded files
+    const fileUrl = file.url.startsWith('http') ? file.url : `${API_BASE}${file.url}`;
+    
+    if (file.type && file.type.startsWith('image/')) {
+      return (
+        <a href={fileUrl} target="_blank" rel="noreferrer">
+          <img src={fileUrl} alt={file.name} style={styles.imgAttachment} />
+        </a>
+      );
+    }
+    
+    const sizeKB = Math.round(file.size / 1024);
+    
+    return (
+      <a href={fileUrl} target="_blank" rel="noreferrer" style={styles.fileCard} download={file.name}>
+        <div style={styles.fileIconBox}>
+          <FileText size={20} />
+        </div>
+        <div style={styles.fileDetails}>
+          <div style={styles.fileName}>{file.name}</div>
+          <div style={styles.fileMeta}>{file.type.split('/')[1]?.toUpperCase() || 'FILE'} • {sizeKB} KB</div>
+        </div>
+        <Download size={16} color="var(--text-muted)" style={{marginLeft: '8px'}} />
+      </a>
+    );
   };
 
   if (messages.length === 0 && !loading) {
@@ -134,16 +243,24 @@ export default function ChatWindow({ messages, loading }) {
                   </div>
                 )}
                 <div style={styles.messageContentWrapper(isUser)}>
-                  <div style={styles.messageContent(isUser, msg.isError)}>
-                    {isUser ? (
-                      msg.content
-                    ) : (
-                      <div 
-                        className="prose" 
-                        dangerouslySetInnerHTML={renderHTML(msg.content)} 
-                      />
+                  <div style={styles.messageContent(isUser, msg.isError, settings.bubbleStyle)}>
+                    {msg.file && renderAttachment(msg.file)}
+                    {msg.content && (
+                      isUser ? (
+                        msg.content
+                      ) : (
+                        <div 
+                          className="prose" 
+                          dangerouslySetInnerHTML={renderHTML(msg.content)} 
+                        />
+                      )
                     )}
                   </div>
+                  {settings.timestamps !== false && (
+                    <div style={{fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px'}}>
+                      {new Date(msg.tempId || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </div>
+                  )}
                 </div>
                 {isUser && (
                   <div style={styles.avatar(true)}>
@@ -162,8 +279,8 @@ export default function ChatWindow({ messages, loading }) {
                 <Bot size={20} />
               </div>
               <div style={styles.messageContentWrapper(false)}>
-                <div style={styles.messageContent(false, false)}>
-                  <TypingIndicator />
+                <div style={styles.messageContent(false, false, settings.bubbleStyle)}>
+                  {settings.typingAnimation !== false ? <TypingIndicator /> : <div style={{color: 'var(--text-muted)', fontStyle: 'italic'}}>Generating response...</div>}
                 </div>
               </div>
             </div>

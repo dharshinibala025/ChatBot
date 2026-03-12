@@ -7,6 +7,7 @@ import mongoose from "mongoose";
 import cors from "cors";
 import { v4 as uuidv4 } from "uuid";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import multer from "multer";
 
 dotenv.config();
 
@@ -18,6 +19,38 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 app.use(express.static(path.join(__dirname, "client/dist")));
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+// Multer Storage Configuration
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, "uploads/"),
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, uniqueSuffix + "-" + file.originalname.replace(/\s+/g, '-'));
+  }
+});
+
+const fileFilter = (req, file, cb) => {
+  // Allow images, videos, common docs, zip
+  const allowedTypes = [
+    'image/jpeg', 'image/png', 'image/webp', 'image/gif',
+    'video/mp4', 'video/webm', 'video/ogg', 'video/quicktime',
+    'application/pdf', 
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // DOCX
+    'text/plain',
+    'application/zip', 'application/x-zip-compressed'
+  ];
+  if (allowedTypes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error("Invalid file type: " + file.mimetype), false);
+  }
+};
+
+const upload = multer({ 
+  storage: storage,
+  limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
+});
 
 // MongoDB URI
 const mongodbUri = process.env.MONGODB_URI || "mongodb://localhost:27017/chatbot";
@@ -41,6 +74,12 @@ const messageSchema = new mongoose.Schema({
   sessionId: { type: String, required: true },
   role: { type: String, required: true },
   content: { type: String, required: true },
+  file: {
+    url: { type: String },
+    name: { type: String },
+    type: { type: String }, // Mongoose interprets object with 'type' field as a type-definition unless wrapped properly.
+    size: { type: Number }
+  },
   createdAt: { type: Date, default: Date.now }
 });
 
@@ -123,14 +162,20 @@ app.post("/api/register", async (req, res) => {
 // Chat endpoint
 app.post("/api/chat", async (req, res) => {
   try {
-    const { message, user_id, session_id: clientSession } = req.body;
+    const { message, user_id, session_id: clientSession, file } = req.body;
     if (!user_id) return res.status(400).json({ error: "user_id required" });
-    if (!message) return res.status(400).json({ error: "message required" });
 
     const session_id = clientSession || uuidv4();
+    const finalMessage = message || (file ? `[Uploaded file: ${file.name}]` : "");
 
     // Save user message
-    await Message.create({ userId: user_id, sessionId: session_id, role: "user", content: message });
+    await Message.create({ 
+      userId: user_id, 
+      sessionId: session_id, 
+      role: "user", 
+      content: finalMessage,
+      file: file || undefined
+    });
 
     // Handle Conversation Title
     let conv = await Conversation.findOne({ sessionId: session_id });
@@ -146,7 +191,7 @@ app.post("/api/chat", async (req, res) => {
       chatSessions.set(session_id, chatSession);
     }
 
-    const assistantReply = await sendWithKeyRotation(chatSession, message, session_id);
+    const assistantReply = await sendWithKeyRotation(chatSession, finalMessage, session_id);
 
     // Save assistant reply
     await Message.create({ userId: user_id, sessionId: session_id, role: "assistant", content: assistantReply });
@@ -156,6 +201,37 @@ app.post("/api/chat", async (req, res) => {
     console.error("Chat error:", err);
     res.status(500).json({ error: "server error", details: err.message });
   }
+});
+
+// File Upload endpoint
+app.post("/api/upload", upload.single("file"), (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: "No file provided or file type rejected." });
+    }
+    const fileUrl = `/uploads/${req.file.filename}`;
+    res.json({
+      url: fileUrl,
+      name: req.file.originalname,
+      type: req.file.mimetype,
+      size: req.file.size
+    });
+  } catch (err) {
+    console.error("Upload error:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Error handling middleware for Multer (e.g. file size exceeded)
+app.use((err, req, res, next) => {
+  if (err instanceof multer.MulterError) {
+    if (err.code === "LIMIT_FILE_SIZE") {
+      return res.status(400).json({ error: "File too large. Maximum size is 10MB." });
+    }
+  } else if (err) {
+    return res.status(400).json({ error: err.message });
+  }
+  next();
 });
 
 // Get history

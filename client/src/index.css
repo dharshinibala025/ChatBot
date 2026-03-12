@@ -1,30 +1,64 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
-  --bg-app: #f9fafb; /* Soft gray for app background */
-  --bg-sidebar: #0f172a; /* Slate 900 */
-  --bg-panel: #ffffff; /* White for main panel */
-  
-  --accent: #7c3aed; /* Violet 600 */
-  --accent-hover: #6d28d9; /* Violet 700 */
-  
-  --text-main: #111827; /* Gray 900 */
-  --text-muted: #6b7280; /* Gray 500 */
-  --text-sidebar: #f8fafc; /* Slate 50 */
-  --text-sidebar-muted: #94a3b8; /* Slate 400 */
-  
-  --bubble-user: #f3f4f6; /* Gray 100 */
+  /* Default Light Theme */
+  --bg-app: #f9fafb;
+  --bg-sidebar: #0f172a;
+  --bg-panel: #ffffff;
+  --text-main: #111827;
+  --text-muted: #6b7280;
+  --text-sidebar: #f8fafc;
+  --text-sidebar-muted: #94a3b8;
+  --bubble-user: #f3f4f6;
   --bubble-ai: #ffffff;
+  --border-light: #e5e7eb;
+  --border-sidebar: #1e293b;
   
-  --border-light: #e5e7eb; /* Gray 200 */
-  --border-sidebar: #1e293b; /* Slate 800 */
+  /* Default Purple Accent */
+  --accent: #7c3aed;
+  --accent-hover: #6d28d9;
   
+  /* Base Font Size */
+  --font-base: 15px;
+
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
   --shadow-input: 0 0 15px rgba(0,0,0,0.05);
-  --shadow-input-focus: 0 0 0 2px rgba(124, 58, 237, 0.2);
+  --shadow-input-focus: 0 0 0 2px rgba(var(--accent-rgb), 0.2);
 }
+
+/* Dark Theme Overrides */
+[data-theme="dark"] {
+  --bg-app: #0f172a;
+  --bg-sidebar: #020617;
+  --bg-panel: #1e293b;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --bubble-user: #334155;
+  --bubble-ai: #1e293b;
+  --border-light: #334155;
+  --border-sidebar: #0f172a;
+}
+
+/* Theme Color Overrides */
+[data-color="blue"] {
+  --accent: #2563eb;
+  --accent-hover: #1d4ed8;
+}
+[data-color="green"] {
+  --accent: #059669;
+  --accent-hover: #047857;
+}
+[data-color="slate"] {
+  --accent: #475569;
+  --accent-hover: #334155;
+}
+
+/* Font Size Overrides */
+[data-font="small"] { --font-base: 13px; }
+[data-font="medium"] { --font-base: 15px; }
+[data-font="large"] { --font-base: 18px; }
 
 * {
   box-sizing: border-box;

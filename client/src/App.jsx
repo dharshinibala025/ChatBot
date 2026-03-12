@@ -4,17 +4,62 @@ import Sidebar from './components/Sidebar';
 import ChatWindow from './components/ChatWindow';
 import ChatInput from './components/ChatInput';
 import LoginModal from './components/LoginModal';
+import SettingsModal from './components/SettingsModal';
 
 const API_BASE_URL = 'http://localhost:5000'; // Define backend URL if needed or use relative
 
 export default function App() {
   const [userId, setUserId] = useState(localStorage.getItem('user_id') || null);
   const [userEmail, setUserEmail] = useState(localStorage.getItem('user_email') || null);
-  const [sessionId, setSessionId] = useState(localStorage.getItem('session_id') || null);
+  const [sessionId, setSessionId] = useState(null); // Always start with a new chat
   const [history, setHistory] = useState([]);
   const [messages, setMessages] = useState([]);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [settingsTab, setSettingsTab] = useState('profile');
   const [loading, setLoading] = useState(false);
+
+  // Global Settings State
+  const defaultSettings = {
+    displayName: '',
+    username: '',
+    email: '',
+    darkMode: false,
+    themeColor: 'purple',
+    fontSize: 'medium',
+    bubbleStyle: 'modern',
+    autoNewChat: true,
+    showHistory: true,
+    timestamps: false,
+    typingAnimation: true,
+    aiStreaming: true,
+    responseStyle: 'balanced',
+    responseLength: 'auto',
+    followUpSuggestions: true,
+    smartReplies: false,
+    imageUploads: true,
+    docUploads: true,
+    dragDrop: true,
+    desktopNotif: false,
+    soundAlerts: false,
+    convHistory: true,
+    twoFactor: false,
+    language: 'en',
+    aiLanguage: 'auto'
+  };
+
+  const [globalSettings, setGlobalSettings] = useState(() => {
+    const saved = localStorage.getItem('chatbot_settings');
+    return saved ? { ...defaultSettings, ...JSON.parse(saved) } : defaultSettings;
+  });
+
+  const updateSetting = (key, value) => {
+    setGlobalSettings(prev => {
+      const updated = { ...prev, [key]: value };
+      localStorage.setItem('chatbot_settings', JSON.stringify(updated));
+      return updated;
+    });
+  };
 
   // Fetch history when user changes
   useEffect(() => {
@@ -76,13 +121,47 @@ export default function App() {
     localStorage.removeItem('session_id');
   };
 
-  const handleSendMessage = async (text) => {
-    if (!text.trim() || !userId) return;
+  const handleSendMessage = async (text, filePayload = null) => {
+    if ((!text.trim() && !filePayload) || !userId) return;
 
-    const newMsg = { role: 'user', content: text, tempId: Date.now() };
-    setMessages((prev) => [...prev, newMsg]);
+    let attachedFile = null;
     setLoading(true);
 
+    // 1. Upload file if present
+    if (filePayload) {
+      try {
+        const formData = new FormData();
+        formData.append('file', filePayload);
+        
+        const uploadRes = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData
+        });
+        
+        if (uploadRes.ok) {
+          attachedFile = await uploadRes.json();
+        } else {
+          console.error("Upload failed");
+          setLoading(false);
+          return;
+        }
+      } catch (err) {
+        console.error("Upload network error", err);
+        setLoading(false);
+        return;
+      }
+    }
+
+    // 2. Add message to UI
+    const newMsg = { 
+      role: 'user', 
+      content: text, 
+      file: attachedFile,
+      tempId: Date.now() 
+    };
+    setMessages((prev) => [...prev, newMsg]);
+
+    // 3. Send chat to bot
     try {
       const res = await fetch('/api/chat', {
         method: 'POST',
@@ -90,7 +169,10 @@ export default function App() {
         body: JSON.stringify({
           message: text,
           user_id: userId,
-          session_id: sessionId
+          session_id: sessionId,
+          file: attachedFile,
+          responseStyle: globalSettings.responseStyle,
+          responseLength: globalSettings.responseLength
         })
       });
       const data = await res.json();
@@ -177,11 +259,16 @@ export default function App() {
   };
 
   return (
-    <div className="app-container">
+    <div 
+      className="app-container"
+      data-theme={globalSettings.darkMode ? 'dark' : 'light'}
+      data-color={globalSettings.themeColor}
+      data-font={globalSettings.fontSize}
+    >
       {!userId && <LoginModal onLogin={handleLogin} />}
       
       <Sidebar 
-        isOpen={sidebarOpen} 
+        isOpen={sidebarOpen && globalSettings.showHistory} 
         setIsOpen={setSidebarOpen} 
         history={history}
         currentSessionId={sessionId}
@@ -198,16 +285,30 @@ export default function App() {
           onLogout={handleLogout} 
           toggleSidebar={() => setSidebarOpen(!sidebarOpen)}
           sidebarOpen={sidebarOpen}
+          setIsSettingsOpen={setIsSettingsOpen}
+          setSettingsTab={setSettingsTab}
+          showSidebarToggle={globalSettings.showHistory}
+          settings={globalSettings}
+        />
+        
+        <SettingsModal 
+          isOpen={isSettingsOpen} 
+          onClose={() => setIsSettingsOpen(false)} 
+          settings={globalSettings}
+          onUpdate={updateSetting}
+          initialTab={settingsTab}
         />
         
         <ChatWindow 
           messages={messages} 
           loading={loading}
+          settings={globalSettings}
         />
         
         <ChatInput 
           onSendMessage={handleSendMessage} 
           disabled={loading || !userId}
+          settings={globalSettings}
         />
       </div>
     </div>
