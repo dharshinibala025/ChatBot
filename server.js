@@ -55,6 +55,22 @@ const upload = multer({
 // MongoDB URI
 const mongodbUri = process.env.MONGODB_URI || "mongodb://localhost:27017/chatbot";
 
+let dbConnectionError = null;
+
+const checkDbStatus = (req, res, next) => {
+  if (dbConnectionError) {
+    return res.status(500).json({ 
+      error: `Database connection failed: ${dbConnectionError}. Please check your MONGODB_URI in Vercel settings and ensure your MongoDB Atlas IP Whitelist allows connections from all IPs (0.0.0.0/0).` 
+    });
+  }
+  if (mongoose.connection.readyState === 0) {
+    return res.status(500).json({ 
+      error: "Database is disconnected. Please check your MONGODB_URI environment variable." 
+    });
+  }
+  next();
+};
+
 // Schemas
 const userSchema = new mongoose.Schema({
   id: { type: String, unique: true, default: uuidv4 },
@@ -140,6 +156,13 @@ async function sendWithKeyRotation(chatSession, message, sessionId) {
 }
 
 const chatSessions = new Map();
+
+// Apply DB status check middleware to routes using the DB
+app.use("/api/register", checkDbStatus);
+app.use("/api/chat", checkDbStatus);
+app.use("/api/history", checkDbStatus);
+app.use("/api/conversation", checkDbStatus);
+app.use("/api/clear", checkDbStatus);
 
 // Register user
 app.post("/api/register", async (req, res) => {
@@ -309,12 +332,11 @@ app.post("/api/clear", async (req, res) => {
 mongoose.connect(mongodbUri)
   .then(() => {
     console.log("✅ MongoDB connected successfully");
+    dbConnectionError = null;
   })
   .catch(err => {
     console.error("❌ MongoDB connection error:", err.message);
-    if (err.message.includes("authentication failed")) {
-      console.error("👉 TIP: Check your MONGODB_URI in the .env file.");
-    }
+    dbConnectionError = err.message;
   });
 
 // Only bind to port if running locally (not on Vercel)
