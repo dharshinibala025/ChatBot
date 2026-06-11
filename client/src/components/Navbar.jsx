@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Menu, Settings, LogOut, User, Palette, MessageSquare, HelpCircle, MessageCircle } from 'lucide-react';
+import { Menu, Settings, LogOut, User, Palette, MessageSquare, HelpCircle, MessageCircle, Bot } from 'lucide-react';
 
 const styles = {
   navbar: {
@@ -243,17 +243,19 @@ export default function Navbar({ userEmail, onLogout, toggleSidebar, sidebarOpen
           <button 
             style={styles.menuBtn} 
             onClick={toggleSidebar}
-            onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.05)'}
+            onMouseEnter={e => e.currentTarget.style.background = 'var(--icon-hover)'}
             onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
           >
             <Menu size={20} />
           </button>
         )}
         <div style={styles.brand}>
-          <div style={styles.logo}>Cb</div>
+          <div style={styles.logo}>
+            <Bot size={18} />
+          </div>
           <div style={styles.titleWrapper}>
-            <div style={styles.title}>Chatbot</div>
-            <div style={styles.subtitle}>Ask anything</div>
+            <div style={styles.title}>AI Assistant</div>
+            <div style={styles.subtitle}>Smart AI Assistant</div>
           </div>
         </div>
       </div>
@@ -265,7 +267,7 @@ export default function Navbar({ userEmail, onLogout, toggleSidebar, sidebarOpen
               style={styles.settingsBtn}
               onClick={() => setIsSettingsOpen(true)}
               onMouseEnter={e => {
-                e.currentTarget.style.background = 'rgba(0,0,0,0.05)';
+                e.currentTarget.style.background = 'var(--icon-hover)';
                 e.currentTarget.style.color = 'var(--text-main)';
               }}
               onMouseLeave={e => {
@@ -279,7 +281,7 @@ export default function Navbar({ userEmail, onLogout, toggleSidebar, sidebarOpen
             <button 
               style={styles.avatarBtn} 
               onClick={() => setIsProfileOpen(!isProfileOpen)}
-              onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.05)'}
+              onMouseEnter={e => e.currentTarget.style.background = 'var(--icon-hover)'}
               onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
             >
               <div style={styles.avatar}>{getInitials()}</div>

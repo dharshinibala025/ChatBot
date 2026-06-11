@@ -1,18 +1,36 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
-  /* Default Light Theme */
-  --bg-app: #f9fafb;
-  --bg-sidebar: #0f172a;
-  --bg-panel: #ffffff;
-  --text-main: #111827;
-  --text-muted: #6b7280;
-  --text-sidebar: #f8fafc;
-  --text-sidebar-muted: #94a3b8;
-  --bubble-user: #f3f4f6;
-  --bubble-ai: #ffffff;
-  --border-light: #e5e7eb;
-  --border-sidebar: #1e293b;
+  /* User defined theme variables */
+  --bg: #ffffff;
+  --card-bg: #f9fafb;
+  --sidebar-bg: #ffffff;
+  --text: #111827;
+  --text-secondary: #4b5563;
+  --border: #e5e7eb;
+  --hover: #f3f4f6;
+
+  /* App variable mappings */
+  --bg-app: var(--bg);
+  --bg-panel: var(--bg);
+  --bg-sidebar: var(--sidebar-bg);
+  --bg-input-wrapper: var(--card-bg);
+  --bg-panel-transparent: rgba(255, 255, 255, 0);
+  --text-main: var(--text);
+  --text-muted: var(--text-secondary);
+  --text-sidebar: var(--text);
+  --text-sidebar-muted: var(--text-secondary);
+  --bubble-user: #f5f3ff;
+  --bubble-ai: var(--hover);
+  --border-light: var(--border);
+  --border-sidebar: var(--border);
+  --dropdown-bg: var(--bg);
+  --icon-hover: var(--hover);
+  --modal-bg: var(--bg);
+  --modal-sidebar-bg: var(--card-bg);
+  --modal-close-bg: var(--hover);
+  --modal-close-hover: var(--border);
+  --nav-item-active-bg: var(--hover);
   
   /* Default Purple Accent */
   --accent: #7c3aed;
@@ -25,20 +43,41 @@
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
   --shadow-input: 0 0 15px rgba(0,0,0,0.05);
-  --shadow-input-focus: 0 0 0 2px rgba(var(--accent-rgb), 0.2);
+  --shadow-input-focus: 0 0 0 2px rgba(124, 58, 237, 0.2);
 }
 
 /* Dark Theme Overrides */
 [data-theme="dark"] {
-  --bg-app: #0f172a;
-  --bg-sidebar: #020617;
-  --bg-panel: #1e293b;
-  --text-main: #f8fafc;
-  --text-muted: #94a3b8;
-  --bubble-user: #334155;
-  --bubble-ai: #1e293b;
-  --border-light: #334155;
-  --border-sidebar: #0f172a;
+  /* User defined theme variables */
+  --bg: #111827;
+  --card-bg: #1f2937;
+  --sidebar-bg: #0f172a;
+  --text: #f9fafb;
+  --text-secondary: #d1d5db;
+  --border: #334155;
+  --hover: #1e293b;
+
+  /* App variable mappings */
+  --bg-app: var(--bg);
+  --bg-panel: var(--bg);
+  --bg-sidebar: var(--sidebar-bg);
+  --bg-input-wrapper: var(--card-bg);
+  --bg-panel-transparent: rgba(17, 24, 39, 0);
+  --text-main: var(--text);
+  --text-muted: var(--text-secondary);
+  --text-sidebar: var(--text);
+  --text-sidebar-muted: var(--text-secondary);
+  --bubble-user: var(--border);
+  --bubble-ai: var(--card-bg);
+  --border-light: var(--border);
+  --border-sidebar: var(--border);
+  --dropdown-bg: var(--card-bg);
+  --icon-hover: var(--hover);
+  --modal-bg: var(--card-bg);
+  --modal-sidebar-bg: var(--bg);
+  --modal-close-bg: var(--border);
+  --modal-close-hover: var(--text-secondary);
+  --nav-item-active-bg: var(--border);
 }
 
 /* Theme Color Overrides */
@@ -161,3 +200,10 @@ body {
 .prose a { color: var(--accent); text-decoration: none; }
 .prose a:hover { text-decoration: underline; }
 .prose ul, .prose ol { padding-left: 1.5rem; margin-bottom: 0.75rem; }
+
+/* Global placeholder styling overrides */
+textarea::placeholder,
+input::placeholder {
+  color: var(--text-muted) !important;
+  opacity: 0.7 !important;
+}

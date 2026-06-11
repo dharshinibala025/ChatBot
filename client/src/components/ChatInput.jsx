@@ -5,19 +5,19 @@ import FilePreview from './FilePreview';
 const styles = {
   container: {
     padding: '0 24px 24px 24px',
-    background: 'linear-gradient(180deg, rgba(255,255,255,0) 0%, var(--bg-panel) 50%)',
+    background: 'linear-gradient(180deg, var(--bg-panel-transparent) 0%, var(--bg-panel) 50%)',
     position: 'relative',
     display: 'flex',
     justifyContent: 'center',
     flexShrink: 0
   },
   wrapper: {
-    maxWidth: '800px',
+    maxWidth: '100%',
     width: '100%',
     position: 'relative',
     display: 'flex',
     flexDirection: 'column',
-    background: 'white',
+    background: 'var(--bg-input-wrapper)',
     border: '1px solid var(--border-light)',
     borderRadius: '24px',
     boxShadow: 'var(--shadow-input)',
@@ -34,7 +34,8 @@ const styles = {
   dragOverlay: {
     position: 'absolute',
     inset: 0,
-    background: 'rgba(255,255,255,0.9)',
+    background: 'var(--bg-input-wrapper)',
+    opacity: 0.95,
     borderRadius: '24px',
     display: 'flex',
     flexDirection: 'column',
@@ -65,7 +66,7 @@ const styles = {
     transition: 'background 0.2s, color 0.2s'
   },
   iconBtnHover: {
-    background: '#f3f4f6',
+    background: 'var(--icon-hover)',
     color: 'var(--text-main)'
   },
   textarea: {
@@ -83,8 +84,8 @@ const styles = {
     fontFamily: 'inherit'
   },
   sendBtn: {
-    background: 'var(--text-main)',
-    color: 'white',
+    background: 'var(--border-light)',
+    color: 'var(--text-muted)',
     border: 'none',
     borderRadius: '50%',
     width: '36px',
@@ -94,14 +95,17 @@ const styles = {
     justifyContent: 'center',
     cursor: 'pointer',
     flexShrink: 0,
-    transition: 'background 0.2s, opacity 0.2s'
+    transition: 'all 0.2s ease'
   },
   sendBtnDisabled: {
-    opacity: 0.5,
-    cursor: 'not-allowed'
+    opacity: 0.6,
+    cursor: 'not-allowed',
+    background: 'var(--border-light)',
+    color: 'var(--text-muted)'
   },
   sendBtnActive: {
     background: 'var(--accent)',
+    color: 'white'
   },
   errorToast: {
     position: 'absolute',
@@ -122,7 +126,8 @@ const styles = {
     position: 'absolute',
     bottom: '60px',
     left: '12px',
-    background: 'white',
+    background: 'var(--dropdown-bg)',
+    border: '1px solid var(--border-light)',
     borderRadius: '16px',
     padding: '8px',
     boxShadow: '0 4px 24px rgba(0,0,0,0.08), 0 0 1px rgba(0,0,0,0.1)',
@@ -225,6 +230,16 @@ export default function ChatInput({ onSendMessage, disabled }) {
   const [recordingTime, setRecordingTime] = useState(0);
   const [sessionTranscript, setSessionTranscript] = useState('');
 
+  const isRecordingRef = useRef(false);
+  const textRef = useRef('');
+  const disabledRef = useRef(false);
+  const onSendMessageRef = useRef(null);
+
+  useEffect(() => { isRecordingRef.current = isRecording; }, [isRecording]);
+  useEffect(() => { textRef.current = text; }, [text]);
+  useEffect(() => { disabledRef.current = disabled; }, [disabled]);
+  useEffect(() => { onSendMessageRef.current = onSendMessage; }, [onSendMessage]);
+
   const textareaRef = useRef(null);
   const fileInputRef = useRef(null);
   const menuRef = useRef(null);
@@ -298,9 +313,18 @@ export default function ChatInput({ onSendMessage, disabled }) {
       };
 
       recognition.onend = () => {
-        // Only trigger stop if it wasn't already stopped by the UI
-        if (isRecording) {
+        // If isRecordingRef is still true, it means SpeechRecognition ended automatically (silence timeout)
+        if (isRecordingRef.current) {
             stopRecordingEngine();
+            const currentText = textRef.current;
+            if (currentText.trim() && !disabledRef.current && onSendMessageRef.current) {
+              onSendMessageRef.current(currentText, null);
+              setText('');
+              setSessionTranscript('');
+              if (textareaRef.current) {
+                textareaRef.current.style.height = '24px';
+              }
+            }
         }
       };
 
@@ -516,7 +540,7 @@ export default function ChatInput({ onSendMessage, disabled }) {
           <div style={styles.dropdownMenu} ref={menuRef}>
             <button 
               style={styles.dropdownItem} 
-              onMouseEnter={e => e.currentTarget.style.background = '#f3f4f6'} 
+              onMouseEnter={e => e.currentTarget.style.background = 'var(--icon-hover)'} 
               onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
               onClick={() => handleMenuItemClick('file')}
             >

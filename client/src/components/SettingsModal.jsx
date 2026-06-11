@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { 
   X, User, Palette, MessageSquare, Brain, FileBox, Bell, Shield, 
-  Globe, Link as LinkIcon, HardDrive, HelpCircle, Info
+  Globe, Link as LinkIcon, HardDrive, HelpCircle, Info, Bot
 } from 'lucide-react';
 
 const styles = {
@@ -20,7 +20,8 @@ const styles = {
     width: '100%',
     maxWidth: '1000px',
     height: '85vh',
-    background: 'white',
+    background: 'var(--modal-bg)',
+    border: '1px solid var(--border-light)',
     borderRadius: '16px',
     boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)',
     display: 'flex',
@@ -30,7 +31,7 @@ const styles = {
   },
   sidebar: {
     width: '280px',
-    background: '#f8fafc',
+    background: 'var(--modal-sidebar-bg)',
     borderRight: '1px solid var(--border-light)',
     display: 'flex',
     flexDirection: 'column',
@@ -57,7 +58,7 @@ const styles = {
   },
   navItemActive: {
     color: 'var(--accent)',
-    background: '#f1f5f9',
+    background: 'var(--nav-item-active-bg)',
     borderLeftColor: 'var(--accent)',
     fontWeight: '600'
   },
@@ -65,14 +66,14 @@ const styles = {
     flex: 1,
     padding: '2.5rem',
     overflowY: 'auto',
-    background: 'white',
+    background: 'var(--modal-bg)',
     position: 'relative'
   },
   closeBtn: {
     position: 'absolute',
     top: '1.5rem',
     right: '1.5rem',
-    background: '#f1f5f9',
+    background: 'var(--modal-close-bg)',
     border: 'none',
     borderRadius: '50%',
     width: '36px',
@@ -112,6 +113,8 @@ const styles = {
     padding: '10px 14px',
     borderRadius: '8px',
     border: '1px solid var(--border-light)',
+    background: 'var(--bg-input-wrapper)',
+    color: 'var(--text-main)',
     fontSize: '14px',
     outline: 'none',
     transition: 'border-color 0.2s'
@@ -121,7 +124,7 @@ const styles = {
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: '12px 0',
-    borderBottom: '1px solid #f1f5f9'
+    borderBottom: '1px solid var(--border-light)'
   },
   toggleLabel: {
     fontSize: '15px',
@@ -170,7 +173,8 @@ const styles = {
     border: '1px solid var(--border-light)',
     fontSize: '14px',
     appearance: 'none',
-    background: 'white',
+    background: 'var(--bg-input-wrapper)',
+    color: 'var(--text-main)',
     cursor: 'pointer'
   },
   primaryBtn: {
@@ -198,7 +202,7 @@ const styles = {
     width: '80px',
     height: '80px',
     borderRadius: '50%',
-    background: '#e2e8f0',
+    background: 'var(--modal-close-bg)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -263,7 +267,7 @@ export default function SettingsModal({ isOpen, onClose, settings, onUpdate, ini
             <p style={styles.sectionSubtitle}>Manage your personal information and account details.</p>
             
             <div style={styles.avatarPreview}>U</div>
-            <button style={{...styles.primaryBtn, background: '#f1f5f9', color: 'var(--text-main)', marginBottom: '1.5rem', marginTop: 0}}>Change Avatar</button>
+            <button style={{...styles.primaryBtn, background: 'var(--modal-close-bg)', color: 'var(--text-main)', marginBottom: '1.5rem', marginTop: 0}}>Change Avatar</button>
             
             <div style={styles.formGroup}>
               <label style={styles.label}>Display Name</label>
@@ -503,7 +507,7 @@ export default function SettingsModal({ isOpen, onClose, settings, onUpdate, ini
                   <div style={{fontWeight: '600', color: 'var(--text-main)'}}>Google Drive</div>
                   <div style={{fontSize: '13px', color: 'var(--text-muted)'}}>Import documents directly from Drive</div>
                 </div>
-                <button style={{...styles.primaryBtn, marginTop: 0, padding: '6px 16px', background: '#f1f5f9', color: 'var(--text-main)'}}>Connect</button>
+                <button style={{...styles.primaryBtn, marginTop: 0, padding: '6px 16px', background: 'var(--modal-close-bg)', color: 'var(--text-main)'}}>Connect</button>
               </div>
               
               <div style={{padding: '1rem', border: '1px solid var(--border-light)', borderRadius: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
@@ -511,15 +515,15 @@ export default function SettingsModal({ isOpen, onClose, settings, onUpdate, ini
                   <div style={{fontWeight: '600', color: 'var(--text-main)'}}>Dropbox</div>
                   <div style={{fontSize: '13px', color: 'var(--text-muted)'}}>Sync attached files to Dropbox</div>
                 </div>
-                <button style={{...styles.primaryBtn, marginTop: 0, padding: '6px 16px', background: '#f1f5f9', color: 'var(--text-main)'}}>Connect</button>
+                <button style={{...styles.primaryBtn, marginTop: 0, padding: '6px 16px', background: 'var(--modal-close-bg)', color: 'var(--text-main)'}}>Connect</button>
               </div>
               
-              <div style={{padding: '1rem', border: '1px solid var(--border-light)', borderRadius: '12px', display: 'flex', justifycontent: 'space-between', alignItems: 'center'}}>
+              <div style={{padding: '1rem', border: '1px solid var(--border-light)', borderRadius: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
                  <div>
                   <div style={{fontWeight: '600', color: 'var(--text-main)'}}>API Sandbox</div>
                   <div style={{fontSize: '13px', color: 'var(--text-muted)'}}>Manage developer access tokens</div>
                 </div>
-                <button style={{...styles.primaryBtn, marginTop: 0, padding: '6px 16px', background: '#f1f5f9', color: 'var(--text-main)'}}>Manage</button>
+                <button style={{...styles.primaryBtn, marginTop: 0, padding: '6px 16px', background: 'var(--modal-close-bg)', color: 'var(--text-main)'}}>Manage</button>
               </div>
             </div>
           </>
@@ -536,15 +540,15 @@ export default function SettingsModal({ isOpen, onClose, settings, onUpdate, ini
                 <span style={styles.label}>Storage Usage</span>
                 <span style={{fontSize: '13px', color: 'var(--text-muted)'}}>45MB / 1GB</span>
               </div>
-              <div style={{height: '8px', background: '#f1f5f9', borderRadius: '4px', overflow: 'hidden'}}>
+              <div style={{height: '8px', background: 'var(--modal-close-bg)', borderRadius: '4px', overflow: 'hidden'}}>
                 <div style={{height: '100%', width: '4.5%', background: 'var(--accent)', borderRadius: '4px'}} />
               </div>
             </div>
 
             <div style={{display: 'flex', flexDirection: 'column', gap: '12px', maxWidth: '300px'}}>
-              <button style={{...styles.primaryBtn, marginTop: 0, background: '#f1f5f9', color: 'var(--text-main)'}}>Export Chat History (.JSON)</button>
-              <button style={{...styles.primaryBtn, marginTop: 0, background: '#f1f5f9', color: 'var(--text-main)'}}>Backup Conversations Local</button>
-              <button style={{...styles.primaryBtn, marginTop: 0, background: '#f1f5f9', color: 'var(--text-main)'}}>Restore Previous Backup</button>
+              <button style={{...styles.primaryBtn, marginTop: 0, background: 'var(--modal-close-bg)', color: 'var(--text-main)'}}>Export Chat History (.JSON)</button>
+              <button style={{...styles.primaryBtn, marginTop: 0, background: 'var(--modal-close-bg)', color: 'var(--text-main)'}}>Backup Conversations Local</button>
+              <button style={{...styles.primaryBtn, marginTop: 0, background: 'var(--modal-close-bg)', color: 'var(--text-main)'}}>Restore Previous Backup</button>
               <button style={{...styles.dangerBtn, marginTop: '1rem'}}>Delete All Logged Data</button>
             </div>
           </>
@@ -557,10 +561,10 @@ export default function SettingsModal({ isOpen, onClose, settings, onUpdate, ini
             <p style={styles.sectionSubtitle}>Get assistance and report platform issues.</p>
             
             <div style={{display: 'flex', flexDirection: 'column', gap: '12px', maxWidth: '300px'}}>
-              <button style={{...styles.primaryBtn, marginTop: 0, background: '#f1f5f9', color: 'var(--text-main)'}}>View FAQ Center</button>
-              <button style={{...styles.primaryBtn, marginTop: 0, background: '#f1f5f9', color: 'var(--text-main)'}}>Contact Support Node</button>
-              <button style={{...styles.primaryBtn, marginTop: 0, background: '#f1f5f9', color: 'var(--text-main)'}}>Report a Problem</button>
-              <button style={{...styles.primaryBtn, marginTop: 0, background: '#f1f5f9', color: 'var(--text-main)'}}>Send Feedback</button>
+              <button style={{...styles.primaryBtn, marginTop: 0, background: 'var(--modal-close-bg)', color: 'var(--text-main)'}}>View FAQ Center</button>
+              <button style={{...styles.primaryBtn, marginTop: 0, background: 'var(--modal-close-bg)', color: 'var(--text-main)'}}>Contact Support Node</button>
+              <button style={{...styles.primaryBtn, marginTop: 0, background: 'var(--modal-close-bg)', color: 'var(--text-main)'}}>Report a Problem</button>
+              <button style={{...styles.primaryBtn, marginTop: 0, background: 'var(--modal-close-bg)', color: 'var(--text-main)'}}>Send Feedback</button>
             </div>
           </>
         );
@@ -571,11 +575,13 @@ export default function SettingsModal({ isOpen, onClose, settings, onUpdate, ini
             <h2 style={styles.sectionTitle}>About</h2>
             <p style={styles.sectionSubtitle}>Platform and license details.</p>
             
-            <div style={{background: '#f8fafc', padding: '1.5rem', borderRadius: '12px', marginBottom: '1.5rem'}}>
+            <div style={{background: 'var(--modal-sidebar-bg)', padding: '1.5rem', borderRadius: '12px', marginBottom: '1.5rem'}}>
               <div style={{display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '1rem'}}>
-                <div style={{width: '40px', height: '40px', borderRadius: '8px', background: 'linear-gradient(135deg, var(--accent), #a78bfa)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold'}}>Cb</div>
+                <div style={{width: '40px', height: '40px', borderRadius: '8px', background: 'linear-gradient(135deg, var(--accent), #a78bfa)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white'}}>
+                  <Bot size={22} />
+                </div>
                 <div>
-                  <div style={{fontWeight: 'bold', color: 'var(--text-main)'}}>Chatbot OS</div>
+                  <div style={{fontWeight: 'bold', color: 'var(--text-main)'}}>AI Assistant OS</div>
                   <div style={{fontSize: '13px', color: 'var(--text-muted)'}}>Version 1.0.4 (Build 429)</div>
                 </div>
               </div>
@@ -609,8 +615,8 @@ export default function SettingsModal({ isOpen, onClose, settings, onUpdate, ini
         <button 
           style={styles.closeBtn} 
           onClick={onClose}
-          onMouseEnter={e => e.currentTarget.style.background = '#e2e8f0'}
-          onMouseLeave={e => e.currentTarget.style.background = '#f1f5f9'}
+          onMouseEnter={e => e.currentTarget.style.background = 'var(--modal-close-hover)'}
+          onMouseLeave={e => e.currentTarget.style.background = 'var(--modal-close-bg)'}
         >
           <X size={20} />
         </button>

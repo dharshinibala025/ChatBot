@@ -18,7 +18,8 @@ const styles = {
   card: {
     width: '400px',
     maxWidth: '90%',
-    background: 'white',
+    background: 'var(--modal-bg)',
+    border: '1px solid var(--border-light)',
     borderRadius: '16px',
     padding: '32px',
     boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)',
@@ -42,6 +43,8 @@ const styles = {
     padding: '12px 16px',
     borderRadius: '8px',
     border: '1px solid var(--border-light)',
+    background: 'var(--bg-input-wrapper)',
+    color: 'var(--text-main)',
     fontSize: '15px',
     outline: 'none',
     transition: 'border 0.2s, box-shadow 0.2s',

@@ -4,15 +4,15 @@ import { PanelLeftClose, Plus, MessageSquare, MoreVertical, Pencil, Trash2, Sear
 const styles = {
   sidebarContainer: (isOpen) => ({
     width: isOpen ? '260px' : '0px',
-    background: 'var(--bg-sidebar)',
-    color: 'var(--text-sidebar)',
+    background: 'var(--sidebar-bg)',
+    color: 'var(--text)',
     transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
     overflow: 'hidden',
     display: 'flex',
     flexDirection: 'column',
     flexShrink: 0,
     zIndex: 20,
-    boxShadow: isOpen ? 'inset -1px 0 0 var(--border-sidebar)' : 'none'
+    boxShadow: isOpen ? 'inset -1px 0 0 var(--border)' : 'none'
   }),
   inner: {
     width: '260px',
@@ -31,7 +31,7 @@ const styles = {
   closeBtn: {
     background: 'transparent',
     border: 'none',
-    color: 'var(--text-sidebar-muted)',
+    color: 'var(--text-secondary)',
     cursor: 'pointer',
     padding: '8px',
     borderRadius: '6px',
@@ -47,9 +47,9 @@ const styles = {
     width: '100%',
     padding: '10px 12px',
     background: 'transparent',
-    border: '1px solid var(--border-sidebar)',
+    border: '1px solid var(--border)',
     borderRadius: '8px',
-    color: 'var(--text-sidebar)',
+    color: 'var(--text)',
     fontSize: '14px',
     fontWeight: '500',
     cursor: 'pointer',
@@ -62,11 +62,11 @@ const styles = {
   },
   searchInput: {
     width: '100%',
-    background: '#1e293b',
-    border: '1px solid transparent',
+    background: 'var(--hover)',
+    border: '1px solid var(--border)',
     borderRadius: '8px',
     padding: '8px 12px 8px 36px',
-    color: 'var(--text-sidebar)',
+    color: 'var(--text)',
     fontSize: '13px',
     outline: 'none',
     transition: 'border 0.2s, background 0.2s'
@@ -76,7 +76,7 @@ const styles = {
     left: '10px',
     top: '50%',
     transform: 'translateY(-50%)',
-    color: 'var(--text-sidebar-muted)',
+    color: 'var(--text-secondary)',
   },
   historyList: {
     flex: 1,
@@ -94,8 +94,8 @@ const styles = {
     padding: '8px 10px',
     borderRadius: '8px',
     cursor: 'pointer',
-    background: isActive ? '#1e293b' : 'transparent',
-    color: isActive ? 'white' : 'var(--text-sidebar-muted)',
+    background: isActive ? 'var(--border)' : 'transparent',
+    color: isActive ? 'var(--text)' : 'var(--text-secondary)',
     transition: 'background 0.2s, color 0.2s',
     position: 'relative'
   }),
@@ -128,13 +128,13 @@ const styles = {
     position: 'absolute',
     right: '0',
     top: '100%',
-    background: '#1e293b',
-    border: '1px solid #334155',
+    background: 'var(--card-bg)',
+    border: '1px solid var(--border)',
     borderRadius: '6px',
     padding: '4px',
     zIndex: 30,
     minWidth: '120px',
-    boxShadow: '0 4px 12px rgba(0,0,0,0.5)'
+    boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
   },
   dropdownItem: {
     display: 'flex',
@@ -144,14 +144,14 @@ const styles = {
     padding: '8px 12px',
     background: 'transparent',
     border: 'none',
-    color: '#cbd5e1',
+    color: 'var(--text)',
     fontSize: '13px',
     cursor: 'pointer',
     borderRadius: '4px',
     textAlign: 'left'
   },
   dropdownItemHover: {
-    background: '#334155'
+    background: 'var(--hover)'
   },
   dropdownItemDanger: {
     color: '#f87171'
@@ -159,13 +159,13 @@ const styles = {
   footer: {
     marginTop: 'auto',
     paddingTop: '16px',
-    borderTop: '1px solid var(--border-sidebar)'
+    borderTop: '1px solid var(--border)'
   },
   clearBtn: {
     width: '100%',
     background: 'transparent',
     border: 'none',
-    color: 'var(--text-sidebar-muted)',
+    color: 'var(--text-secondary)',
     fontSize: '13px',
     cursor: 'pointer',
     textAlign: 'left',
@@ -222,12 +222,12 @@ export default function Sidebar({ isOpen, setIsOpen, history, currentSessionId, 
             style={styles.closeBtn} 
             onClick={() => setIsOpen(false)}
             onMouseEnter={e => {
-              e.currentTarget.style.background = 'rgba(255,255,255,0.1)';
-              e.currentTarget.style.color = 'white';
+              e.currentTarget.style.background = 'var(--hover)';
+              e.currentTarget.style.color = 'var(--text)';
             }}
             onMouseLeave={e => {
               e.currentTarget.style.background = 'transparent';
-              e.currentTarget.style.color = 'var(--text-sidebar-muted)';
+              e.currentTarget.style.color = 'var(--text-secondary)';
             }}
             title="Close sidebar"
           >
@@ -238,7 +238,7 @@ export default function Sidebar({ isOpen, setIsOpen, history, currentSessionId, 
         <button 
           style={styles.newChatBtn} 
           onClick={onNewChat}
-          onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+          onMouseEnter={e => e.currentTarget.style.background = 'var(--hover)'}
           onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
         >
           <Plus size={16} />
@@ -254,12 +254,12 @@ export default function Sidebar({ isOpen, setIsOpen, history, currentSessionId, 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onFocus={e => {
-              e.target.style.background = '#0f172a';
-              e.target.style.border = '1px solid #3b82f6';
+              e.target.style.background = 'var(--bg)';
+              e.target.style.border = '1px solid var(--accent)';
             }}
             onBlur={e => {
-              e.target.style.background = '#1e293b';
-              e.target.style.border = '1px solid transparent';
+              e.target.style.background = 'var(--hover)';
+              e.target.style.border = '1px solid var(--border)';
             }}
           />
         </div>
@@ -270,7 +270,7 @@ export default function Sidebar({ isOpen, setIsOpen, history, currentSessionId, 
               key={item.id} 
               style={styles.historyItem(currentSessionId === item.id)}
               onClick={() => onSelectSession(item.id)}
-              onMouseEnter={e => { if(currentSessionId !== item.id) e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; }}
+              onMouseEnter={e => { if(currentSessionId !== item.id) e.currentTarget.style.background = 'var(--border)'; }}
               onMouseLeave={e => { if(currentSessionId !== item.id) e.currentTarget.style.background = 'transparent'; }}
             >
               <div style={styles.itemContent}>
@@ -310,7 +310,7 @@ export default function Sidebar({ isOpen, setIsOpen, history, currentSessionId, 
             </div>
           ))}
           {filteredHistory.length === 0 && history.length > 0 && searchQuery && (
-            <div style={{color: 'var(--text-sidebar-muted)', fontSize: '13px', textAlign: 'center', marginTop: '20px'}}>
+            <div style={{color: 'var(--text-secondary)', fontSize: '13px', textAlign: 'center', marginTop: '20px'}}>
               No matches found.
             </div>
           )}
@@ -326,12 +326,12 @@ export default function Sidebar({ isOpen, setIsOpen, history, currentSessionId, 
                 }
               }}
               onMouseEnter={e => {
-                e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
+                e.currentTarget.style.background = 'var(--hover)';
                 e.currentTarget.style.color = '#f87171';
               }}
               onMouseLeave={e => {
                 e.currentTarget.style.background = 'transparent';
-                e.currentTarget.style.color = 'var(--text-sidebar-muted)';
+                e.currentTarget.style.color = 'var(--text-secondary)';
               }}
             >
               Clear conversations

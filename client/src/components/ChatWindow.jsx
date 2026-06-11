@@ -42,7 +42,7 @@ const styles = {
     color: 'var(--text-muted)'
   },
   messageList: {
-    maxWidth: '800px',
+    maxWidth: '100%',
     width: '100%',
     margin: '0 auto',
     display: 'flex',
@@ -63,8 +63,8 @@ const styles = {
     width: '32px',
     height: '32px',
     borderRadius: isUser ? '50%' : '8px',
-    background: isUser ? '#e2e8f0' : 'var(--accent)',
-    color: isUser ? '#64748b' : 'white',
+    background: isUser ? 'var(--border-light)' : 'var(--accent)',
+    color: isUser ? 'var(--text-main)' : 'white',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -125,7 +125,7 @@ const styles = {
     alignItems: 'center',
     gap: '12px',
     padding: '12px',
-    background: 'white',
+    background: 'var(--bg-input-wrapper)',
     border: '1px solid var(--border-light)',
     borderRadius: '12px',
     textDecoration: 'none',

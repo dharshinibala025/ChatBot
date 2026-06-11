@@ -8,7 +8,7 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     gap: '12px',
-    background: '#f8fafc',
+    background: 'var(--modal-sidebar-bg)',
     borderTopLeftRadius: '24px',
     borderTopRightRadius: '24px',
     position: 'relative'
@@ -19,7 +19,7 @@ const styles = {
     borderRadius: '8px',
     objectFit: 'cover',
     border: '1px solid var(--border-light)',
-    background: 'white'
+    background: 'var(--bg-input-wrapper)'
   },
   docIconWrapper: {
     width: '48px',
