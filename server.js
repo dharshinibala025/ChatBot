@@ -302,20 +302,25 @@ app.post("/api/clear", async (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 5000;
-
-// Start server only after MongoDB is connected
+// Connect to MongoDB (Asynchronously, to prevent serverless startup crashes)
 mongoose.connect(mongodbUri)
   .then(() => {
     console.log("✅ MongoDB connected successfully");
-    app.listen(PORT, () => {
-      console.log(`✅ Node server running at http://localhost:${PORT}`);
-    });
   })
   .catch(err => {
     console.error("❌ MongoDB connection error:", err.message);
     if (err.message.includes("authentication failed")) {
-      console.error("👉 TIP: Check your MONGODB_URI in the .env file. Ensure the username and password are correct.");
+      console.error("👉 TIP: Check your MONGODB_URI in the .env file.");
     }
-    process.exit(1);
   });
+
+// Only bind to port if running locally (not on Vercel)
+if (!process.env.VERCEL) {
+  const PORT = process.env.PORT || 5000;
+  app.listen(PORT, () => {
+    console.log(`✅ Node server running at http://localhost:${PORT}`);
+  });
+}
+
+// Export the Express app instance for Vercel serverless runner
+export default app;
