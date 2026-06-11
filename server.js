@@ -96,11 +96,10 @@ const apiKeys = [
 ].filter(Boolean); // removes undefined entries
 
 if (apiKeys.length === 0) {
-  console.error("❌ No Gemini API keys found in .env!");
-  process.exit(1);
+  console.warn("⚠️  No Gemini API keys found! Please configure GEMINI_API_KEY in your environment variables.");
+} else {
+  console.log(`ℹ️  Loaded ${apiKeys.length} Gemini API key(s)`);
 }
-
-console.log(`ℹ️  Loaded ${apiKeys.length} Gemini API key(s)`);
 
 let currentKeyIndex = 0;
 
@@ -164,6 +163,10 @@ app.post("/api/chat", async (req, res) => {
   try {
     const { message, user_id, session_id: clientSession, file } = req.body;
     if (!user_id) return res.status(400).json({ error: "user_id required" });
+
+    if (apiKeys.length === 0) {
+      return res.status(500).json({ error: "Gemini API key is not configured on the server. Please add GEMINI_API_KEY to your Vercel Environment Variables." });
+    }
 
     const session_id = clientSession || uuidv4();
     const finalMessage = message || (file ? `[Uploaded file: ${file.name}]` : "");
