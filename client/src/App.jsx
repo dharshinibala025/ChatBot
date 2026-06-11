@@ -18,6 +18,7 @@ export default function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [settingsTab, setSettingsTab] = useState('profile');
   const [loading, setLoading] = useState(false);
+  const [suggestion, setSuggestion] = useState('');
 
   // Global Settings State
   const defaultSettings = {
@@ -289,6 +290,7 @@ export default function App() {
           setSettingsTab={setSettingsTab}
           showSidebarToggle={globalSettings.showHistory}
           settings={globalSettings}
+          onToggleTheme={() => updateSetting('darkMode', !globalSettings.darkMode)}
         />
         
         <SettingsModal 
@@ -303,12 +305,15 @@ export default function App() {
           messages={messages} 
           loading={loading}
           settings={globalSettings}
+          onSelectSuggestion={setSuggestion}
         />
         
         <ChatInput 
           onSendMessage={handleSendMessage} 
           disabled={loading || !userId}
           settings={globalSettings}
+          suggestion={suggestion}
+          setSuggestion={setSuggestion}
         />
       </div>
     </div>

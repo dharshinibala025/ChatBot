@@ -216,8 +216,21 @@ const styles = {
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
-export default function ChatInput({ onSendMessage, disabled }) {
+export default function ChatInput({ onSendMessage, disabled, suggestion, setSuggestion }) {
   const [text, setText] = useState('');
+
+  useEffect(() => {
+    if (suggestion) {
+      setText(suggestion);
+      setSuggestion('');
+      if (textareaRef.current) {
+        // Yield to browser rendering cycle so focus succeeds
+        setTimeout(() => {
+          textareaRef.current?.focus();
+        }, 50);
+      }
+    }
+  }, [suggestion, setSuggestion]);
   const [isFocused, setIsFocused] = useState(false);
   const [isDragActive, setIsDragActive] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);

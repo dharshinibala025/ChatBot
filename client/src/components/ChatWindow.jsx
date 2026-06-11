@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
 import TypingIndicator from './TypingIndicator';
-import { Sparkles, Bot, User, FileText, Download } from 'lucide-react';
+import { Sparkles, Bot, User, FileText, Download, Code, Brain, AlignLeft, Lightbulb } from 'lucide-react';
 
 const API_BASE = 'http://localhost:5000';
 
@@ -172,7 +172,7 @@ const styles = {
   }
 };
 
-export default function ChatWindow({ messages, loading, settings = {} }) {
+export default function ChatWindow({ messages, loading, settings = {}, onSelectSuggestion }) {
   const bottomRef = useRef(null);
 
   useEffect(() => {
@@ -217,13 +217,48 @@ export default function ChatWindow({ messages, loading, settings = {} }) {
 
   if (messages.length === 0 && !loading) {
     return (
-      <div style={styles.container}>
-        <div style={styles.welcomeWrapper}>
-          <div style={styles.welcomeIcon}>
+      <div style={{...styles.container, justifyContent: 'center', alignItems: 'center'}}>
+        <div className="welcome-container">
+          <div className="welcome-icon-box">
             <Sparkles size={40} />
           </div>
-          <div style={styles.welcomeText}>Ready when you are.</div>
-          <div style={styles.welcomeSubtext}>Ask me anything or select a conversation.</div>
+          <h1 className="welcome-title">AI Assistant</h1>
+          <p className="welcome-subtitle">How can I help you today?</p>
+          
+          <div className="suggestions-grid">
+            <div 
+              className="suggestion-card stagger-1"
+              onClick={() => onSelectSuggestion("Explain quantum computing like I'm 5")}
+            >
+              <Brain size={18} color="var(--accent)" />
+              <div className="suggestion-card-title">Explain a concept</div>
+              <div className="suggestion-card-desc">Explain quantum computing like I'm 5</div>
+            </div>
+            <div 
+              className="suggestion-card stagger-2"
+              onClick={() => onSelectSuggestion("Write a python function to scrape web pages")}
+            >
+              <Code size={18} color="var(--accent)" />
+              <div className="suggestion-card-title">Generate code</div>
+              <div className="suggestion-card-desc">Write a python function to scrape web pages</div>
+            </div>
+            <div 
+              className="suggestion-card stagger-3"
+              onClick={() => onSelectSuggestion("Summarize the key points of the theory of relativity")}
+            >
+              <AlignLeft size={18} color="var(--accent)" />
+              <div className="suggestion-card-title">Summarize text</div>
+              <div className="suggestion-card-desc">Summarize the key points of the theory of relativity</div>
+            </div>
+            <div 
+              className="suggestion-card stagger-4"
+              onClick={() => onSelectSuggestion("Give me 5 unique project names for a chat application")}
+            >
+              <Lightbulb size={18} color="var(--accent)" />
+              <div className="suggestion-card-title">Brainstorm ideas</div>
+              <div className="suggestion-card-desc">Give me 5 unique project names for a chat application</div>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -235,7 +270,7 @@ export default function ChatWindow({ messages, loading, settings = {} }) {
         {messages.map((msg, index) => {
           const isUser = msg.role === 'user';
           return (
-            <div key={msg.tempId || index} style={styles.messageRow(isUser)}>
+            <div key={msg.tempId || index} style={styles.messageRow(isUser)} className={isUser ? "msg-user-animate" : "msg-bot-animate"}>
               <div style={styles.messageBubble(isUser)}>
                 {!isUser && (
                   <div style={styles.avatar(false)}>
@@ -273,7 +308,7 @@ export default function ChatWindow({ messages, loading, settings = {} }) {
         })}
         
         {loading && (
-          <div style={styles.loadingRow}>
+          <div style={styles.loadingRow} className="msg-bot-animate pulse-loading">
             <div style={styles.messageBubble(false)}>
               <div style={styles.avatar(false)}>
                 <Bot size={20} />

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Menu, Settings, LogOut, User, Palette, MessageSquare, HelpCircle, MessageCircle, Bot } from 'lucide-react';
+import { Menu, Settings, LogOut, User, Palette, MessageSquare, HelpCircle, MessageCircle, Bot, Sun, Moon } from 'lucide-react';
 
 const styles = {
   navbar: {
@@ -8,8 +8,11 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: '0 1.5rem',
-    background: 'var(--bg-panel)',
-    boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+    background: 'var(--header-bg)',
+    backdropFilter: 'blur(12px)',
+    WebkitBackdropFilter: 'blur(12px)',
+    borderBottom: '1px solid var(--border-light)',
+    boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
     zIndex: 10,
     flexShrink: 0
   },
@@ -180,7 +183,7 @@ const styles = {
   }
 };
 
-export default function Navbar({ userEmail, onLogout, toggleSidebar, sidebarOpen, setIsSettingsOpen, setSettingsTab, showSidebarToggle = true, settings = {} }) {
+export default function Navbar({ userEmail, onLogout, toggleSidebar, sidebarOpen, setIsSettingsOpen, setSettingsTab, showSidebarToggle = true, settings = {}, onToggleTheme }) {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const profileRef = useRef(null);
 
@@ -263,6 +266,22 @@ export default function Navbar({ userEmail, onLogout, toggleSidebar, sidebarOpen
       <div style={styles.right} ref={profileRef}>
         {userEmail && (
           <>
+            <button 
+              style={styles.settingsBtn}
+              onClick={onToggleTheme}
+              onMouseEnter={e => {
+                e.currentTarget.style.background = 'var(--icon-hover)';
+                e.currentTarget.style.color = 'var(--text-main)';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.background = 'transparent';
+                e.currentTarget.style.color = 'var(--text-muted)';
+              }}
+              aria-label="Toggle Theme"
+              title="Toggle theme"
+            >
+              {settings.darkMode ? <Sun size={20} /> : <Moon size={20} />}
+            </button>
             <button 
               style={styles.settingsBtn}
               onClick={() => setIsSettingsOpen(true)}
